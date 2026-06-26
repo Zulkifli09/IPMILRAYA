@@ -18,15 +18,14 @@ export default async function DetailAnggotaPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  notFound();
-
   const { id } = await params;
   const member = await prisma.member.findUnique({
     where: { id },
   });
 
   if (!member) {
-    return notFound();
+    notFound();
+    throw new Error("Not found");
   }
 
   const statusMap: Record<string, { label: string; variant: any }> = {
