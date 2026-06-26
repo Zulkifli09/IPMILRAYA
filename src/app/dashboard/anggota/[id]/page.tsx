@@ -26,7 +26,7 @@ export default async function DetailAnggotaPage({
   });
 
   if (!member) {
-    notFound();
+    return notFound();
   }
 
   const statusMap: Record<string, { label: string; variant: any }> = {
