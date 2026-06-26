@@ -1,0 +1,410 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ============================================================================
+// ENUMS
+// ============================================================================
+
+enum Role {
+  ADMIN
+  PENGURUS
+  ANGGOTA
+}
+
+enum MembershipStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+enum PublishStatus {
+  DRAFT
+  PUBLISHED
+}
+
+// ============================================================================
+// AUTHENTICATION & USERS
+// ============================================================================
+
+model User {
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  password      String
+  image         String?
+  role          Role      @default(ANGGOTA)
+  phone         String?
+  address       String?
+  bio           String?
+  isActive      Boolean   @default(true)
+  emailVerified DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  accounts      Account[]
+  sessions      Session[]
+  news          News[]
+  activities    Activity[]
+  management    Management?
+  divisionMemberships DivisionMember[]
+  member        Member?
+
+  @@map("users")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+// ============================================================================
+// ORGANIZATION PROFILE
+// ============================================================================
+
+model OrganizationProfile {
+  id          String   @id @default(cuid())
+  name        String
+  shortName   String?
+  description String?  @db.Text
+  logo        String?
+  favicon     String?
+  foundedDate DateTime?
+  email       String?
+  phone       String?
+  address     String?  @db.Text
+  mapEmbed    String?  @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("organization_profiles")
+}
+
+model VisionMission {
+  id        String   @id @default(cuid())
+  vision    String   @db.Text
+  missions  String[] 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("vision_missions")
+}
+
+model History {
+  id          String   @id @default(cuid())
+  title       String
+  content     String   @db.Text
+  year        String?
+  image       String?
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("histories")
+}
+
+// ============================================================================
+// ORGANIZATIONAL STRUCTURE
+// ============================================================================
+
+model OrganizationalStructure {
+  id        String   @id @default(cuid())
+  name      String
+  position  String
+  image     String?
+  order     Int      @default(0)
+  period    String?
+  parentId  String?
+  parent    OrganizationalStructure?  @relation("StructureHierarchy", fields: [parentId], references: [id])
+  children  OrganizationalStructure[] @relation("StructureHierarchy")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("organizational_structures")
+}
+
+// ============================================================================
+// MANAGEMENT (PENGURUS)
+// ============================================================================
+
+model Management {
+  id          String   @id @default(cuid())
+  userId      String?  @unique
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  name        String
+  position    String
+  period      String
+  image       String?
+  bio         String?  @db.Text
+  phone       String?
+  email       String?
+  instagram   String?
+  linkedin    String?
+  order       Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("managements")
+}
+
+// ============================================================================
+// DIVISIONS
+// ============================================================================
+
+model Division {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?  @db.Text
+  duties      String?  @db.Text
+  image       String?
+  leaderId    String?
+  order       Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  members     DivisionMember[]
+  workPrograms WorkProgram[]
+  galleries   Gallery[]
+
+  @@map("divisions")
+}
+
+model DivisionMember {
+  id         String   @id @default(cuid())
+  divisionId String
+  division   Division @relation(fields: [divisionId], references: [id], onDelete: Cascade)
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  name       String
+  position   String?
+  joinedAt   DateTime @default(now())
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([divisionId, userId])
+  @@map("division_members")
+}
+
+// ============================================================================
+// WORK PROGRAMS
+// ============================================================================
+
+model WorkProgram {
+  id          String    @id @default(cuid())
+  name        String
+  description String?   @db.Text
+  divisionId  String?
+  division    Division? @relation(fields: [divisionId], references: [id], onDelete: SetNull)
+  period      String?
+  startDate   DateTime?
+  endDate     DateTime?
+  status      String    @default("planned")
+  order       Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("work_programs")
+}
+
+// ============================================================================
+// NEWS & ACTIVITIES
+// ============================================================================
+
+model News {
+  id          String        @id @default(cuid())
+  title       String
+  slug        String        @unique
+  thumbnail   String?
+  content     String        @db.Text
+  excerpt     String?       @db.Text
+  authorId    String?
+  author      User?         @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  status      PublishStatus @default(DRAFT)
+  publishedAt DateTime?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@map("news")
+}
+
+model Activity {
+  id          String        @id @default(cuid())
+  name        String
+  slug        String        @unique
+  description String?       @db.Text
+  date        DateTime
+  endDate     DateTime?
+  location    String?
+  poster      String?
+  documentation String[]
+  status      PublishStatus @default(DRAFT)
+  authorId    String?
+  author      User?         @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  publishedAt DateTime?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@map("activities")
+}
+
+// ============================================================================
+// GALLERY
+// ============================================================================
+
+model Gallery {
+  id          String    @id @default(cuid())
+  title       String
+  description String?   @db.Text
+  fileUrl     String
+  fileType    String    @default("image")
+  divisionId  String?
+  division    Division? @relation(fields: [divisionId], references: [id], onDelete: SetNull)
+  date        DateTime  @default(now())
+  order       Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("galleries")
+}
+
+// ============================================================================
+// MEMBERSHIP
+// ============================================================================
+
+model Member {
+  id          String           @id @default(cuid())
+  userId      String?          @unique
+  user        User?            @relation(fields: [userId], references: [id], onDelete: SetNull)
+  fullName    String
+  nim         String?
+  major       String?
+  batch       String?
+  email       String
+  whatsapp    String?
+  address     String?          @db.Text
+  photo       String?
+  status      MembershipStatus @default(PENDING)
+  notes       String?          @db.Text
+  verifiedAt  DateTime?
+  verifiedBy  String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@map("members")
+}
+
+// ============================================================================
+// CONTACT & MESSAGES
+// ============================================================================
+
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  subject   String?
+  message   String   @db.Text
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("contact_messages")
+}
+
+// ============================================================================
+// SOCIAL MEDIA & SETTINGS
+// ============================================================================
+
+model SocialMedia {
+  id        String   @id @default(cuid())
+  platform  String   @unique
+  url       String
+  icon      String?
+  isActive  Boolean  @default(true)
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("social_medias")
+}
+
+// ============================================================================
+// HOMEPAGE BANNERS
+// ============================================================================
+
+model HomepageBanner {
+  id          String   @id @default(cuid())
+  title       String?
+  subtitle    String?
+  image       String
+  buttonText  String?
+  buttonLink  String?
+  order       Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("homepage_banners")
+}
+
+// ============================================================================
+// SITE SETTINGS (Key-Value Store)
+// ============================================================================
+
+model Setting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("settings")
+}

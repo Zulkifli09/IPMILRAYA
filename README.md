@@ -1,36 +1,79 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# IPMIL - Sistem Informasi & Manajemen Organisasi
 
-## Getting Started
+Sistem Informasi dan Manajemen Organisasi (IPMIL) adalah platform web modern yang dibangun untuk memfasilitasi kebutuhan publikasi informasi (berita, kegiatan, galeri) serta kebutuhan internal manajemen (data anggota, pengurus, program kerja, pesan masuk).
 
-First, run the development server:
+Dibangun menggunakan Next.js (App Router), TypeScript, Tailwind CSS, Shadcn/UI, Prisma ORM, dan PostgreSQL.
 
+## Fitur Utama
+
+### 1. Halaman Publik
+- **Beranda**: Menampilkan cuplikan profil, statistik, berita terbaru, dan kegiatan mendatang.
+- **Tentang**: Sejarah organisasi, visi misi, struktur organisasi, dan program kerja.
+- **Berita & Galeri**: Publikasi artikel dan dokumentasi acara.
+- **Pendaftaran Anggota**: Formulir online untuk calon anggota baru dengan fitur upload foto.
+- **Kontak**: Formulir pengaduan atau pesan yang terhubung langsung ke dashboard.
+- **Dark Mode**: Dukungan mode gelap dan terang.
+
+### 2. Dashboard Admin (CMS)
+- **Manajemen Konten**: Kelola profil, visi misi, sejarah, struktur, berita, dan galeri.
+- **Manajemen Keanggotaan**: Verifikasi pendaftaran anggota baru, ubah status anggota.
+- **Manajemen Pengurus & Divisi**: Kelola daftar pengurus, bio, dan pembagian divisi.
+- **Manajemen Program Kerja & Kegiatan**: Kelola proker per divisi beserta detail kegiatannya.
+- **Manajemen Pesan**: Kotak masuk (inbox) pesan dari form kontak publik.
+- **Manajemen Pengguna**: Tambah dan kelola akses akun admin ke dashboard.
+
+---
+
+## Persyaratan Sistem
+
+- Node.js versi 18+ atau 20+
+- PostgreSQL database
+- Akun Cloudinary (untuk penyimpanan gambar)
+
+## Cara Instalasi & Menjalankan (Local Development)
+
+### 1. Clone & Install Dependencies
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Pengaturan Environment Variables
+Duplikat file `.env.local` menjadi `.env` dan sesuaikan nilainya:
+```bash
+cp .env.local .env
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+**Konfigurasi Penting di `.env`:**
+- `DATABASE_URL`: Connection string PostgreSQL Anda (contoh: dari Supabase, Neon, atau local).
+- `AUTH_SECRET`: Generate secret key acak (bisa menggunakan `npx auth secret` atau openssl rand).
+- `NEXT_PUBLIC_CLOUDINARY_*` dan `CLOUDINARY_*`: Dapatkan dari dashboard Cloudinary Anda.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 3. Migrasi Database & Seeding
+Setelah `DATABASE_URL` terhubung ke database PostgreSQL yang aktif, jalankan:
+```bash
+npx prisma db push
+npm run prisma db seed
+```
+*Perintah `seed` akan otomatis membuat akun admin default (`admin@ipmil.org` / `password123`) dan data profil awal.*
 
-## Learn More
+### 4. Jalankan Server Development
+```bash
+npm run dev
+```
+Akses website di `http://localhost:3000`. Akses dashboard admin di `http://localhost:3000/login`.
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Panduan Deployment ke Vercel
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Aplikasi ini sudah dioptimasi untuk deployment di [Vercel](https://vercel.com).
 
-## Deploy on Vercel
+1. Buat project baru di Vercel dan hubungkan dengan repository GitHub aplikasi ini.
+2. Pada bagian **Environment Variables**, masukkan seluruh key yang ada di `.env`.
+   - Pastikan `DATABASE_URL` mengarah ke production database (sebaiknya gunakan connection pool).
+   - Pastikan `AUTH_URL` disesuaikan dengan domain Vercel Anda (misal: `https://ipmil.vercel.app`).
+3. Vercel akan secara otomatis mendeteksi framework Next.js dan menjalankan `npm run build`.
+4. Jika build berhasil namun database belum termigrasi, Anda dapat menambahkan *Build Command* di Vercel: `npx prisma generate && npx prisma db push && npm run build`.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Lisensi
+Hak Cipta © 2026 IPMIL. Seluruh hak cipta dilindungi undang-undang.
