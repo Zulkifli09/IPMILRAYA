@@ -7,6 +7,7 @@ import { Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { formatDate } from "@/lib/utils";
 import { deleteGallery } from "@/actions/manage";
+import Image from "next/image";
 
 export function GaleriClient({ data }: { data: any[] }) {
   const columns = [
