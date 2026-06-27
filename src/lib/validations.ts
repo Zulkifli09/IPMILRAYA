@@ -125,7 +125,7 @@ export const newsSchema = z.object({
   thumbnail: z.string().optional(),
   content: z.string().min(1, "Konten wajib diisi"),
   excerpt: z.string().optional(),
-  status: z.enum(["DRAFT", "PUBLISHED"]).default("DRAFT"),
+  status: z.enum(["DRAFT", "PUBLISHED"]),
 });
 
 // ============================================================================
@@ -141,7 +141,7 @@ export const activitySchema = z.object({
   location: z.string().optional(),
   poster: z.string().optional(),
   documentation: z.array(z.string()).default([]),
-  status: z.enum(["DRAFT", "PUBLISHED"]).default("DRAFT"),
+  status: z.enum(["DRAFT", "PUBLISHED"]),
 });
 
 // ============================================================================
