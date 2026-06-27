@@ -40,7 +40,7 @@ export default async function PenggunaPage() {
         </Link>
       </div>
 
-      <PenggunaClient data={items} />
+      <PenggunaClient data={users} />
     </div>
   );
 }
