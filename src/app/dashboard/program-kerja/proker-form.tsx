@@ -110,7 +110,7 @@ export function ProkerForm({ initialData, divisions }: ProkerFormProps) {
                   <Label>Status Pelaksanaan</Label>
                   <Select
                     value={form.watch("status")}
-                    onValueChange={(val) => form.setValue("status", val)}
+                    onValueChange={(val: any) => form.setValue("status", val)}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Pilih Status" />
