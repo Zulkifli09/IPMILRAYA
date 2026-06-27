@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Plus, Edit, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
+import Image from "next/image";
+import { deleteHomepageBanner } from "@/actions/organization";
 
 export function BannerClient({ data }: { data: any[] }) {
   const columns = [
